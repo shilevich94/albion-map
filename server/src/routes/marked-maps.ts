@@ -1,7 +1,7 @@
-import express from 'express'
+import express, { type Router } from 'express'
 import { MarkedMapModel } from '../models/MarkedMap.js'
 
-const router = express.Router()
+const router: Router = express.Router()
 
 /** GET /api/marked-maps?q=... - list marked maps, filter by mapName, sort by date desc */
 router.get('/', async (req, res) => {
@@ -36,7 +36,7 @@ router.post('/', async (req, res) => {
       return
     }
     const marksArray = Array.isArray(marks)
-      ? marks.filter((m: unknown) => typeof m === 'object' && m !== null && 'x' in m && 'y' in m).map((m: { x: number; y: number }) => ({ x: Number(m.x), y: Number(m.y) }))
+      ? marks.filter((m: unknown): m is { x: unknown; y: unknown } => typeof m === 'object' && m !== null && 'x' in m && 'y' in m).map((m) => ({ x: Number(m.x), y: Number(m.y) }))
       : []
     const doc = await MarkedMapModel.create({
       mapId,
@@ -56,7 +56,7 @@ router.put('/:id', async (req, res) => {
   try {
     const { mapId, mapName, imageUrl, marks } = req.body
     const marksArray = Array.isArray(marks)
-      ? marks.filter((m: unknown) => typeof m === 'object' && m !== null && 'x' in m && 'y' in m).map((m: { x: number; y: number }) => ({ x: Number(m.x), y: Number(m.y) }))
+      ? marks.filter((m: unknown): m is { x: unknown; y: unknown } => typeof m === 'object' && m !== null && 'x' in m && 'y' in m).map((m) => ({ x: Number(m.x), y: Number(m.y) }))
       : undefined
     const update: Record<string, unknown> = {}
     if (marksArray !== undefined) update.marks = marksArray

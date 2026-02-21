@@ -1,7 +1,7 @@
-import express from 'express'
+import express, { type Router } from 'express'
 import { GameMapModel } from '../models/GameMap.js'
 
-const router = express.Router()
+const router: Router = express.Router()
 const AFM_CDN_BASE = 'https://cdn.albionfreemarket.com/AlbionWorld/map/images'
 
 function escapeRegex(s: string): string {
