@@ -1,0 +1,28 @@
+# Render Blueprint: albion-map
+# Backend (Node API) + Frontend (static site)
+# Set MONGODB_URI for the API and VITE_API_URL for the frontend in the Render Dashboard.
+
+services:
+  # Backend: Node/Express API (connects to MongoDB Atlas)
+  - type: web
+    runtime: node
+    name: albion-map-api
+    rootDir: server
+    buildCommand: npm install && npm run build
+    startCommand: node dist/index.js
+    envVars:
+      - key: MONGODB_URI
+        sync: false  # Set in Render Dashboard (your Atlas connection string)
+      - key: NODE_ENV
+        value: production
+
+  # Frontend: Vite/React static site
+  - type: web
+    runtime: static
+    name: albion-map
+    rootDir: client
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false  # Set in Render Dashboard to your API URL (e.g. https://albion-map-api.onrender.com)
