@@ -5,6 +5,9 @@
 
 FROM node:20-alpine
 
+# Rush uses Git for repo state analysis (optional but avoids "Git is not present" in logs)
+RUN apk add --no-cache git
+
 WORKDIR /app
 
 COPY . .
