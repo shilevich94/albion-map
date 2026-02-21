@@ -1,7 +1,7 @@
 import { Autocomplete, TextField } from '@mui/material'
 import { useCallback, useState } from 'react'
 import { useSearchGameMapsQuery } from '@/entities/map/api/albionMapsApi'
-import { useDebouncedValue } from '@/shared/lib/useDebouncedValue'
+import { useDebouncedValue } from '../../../shared/lib/useDebouncedValue'
 import type { AlbionMapSearchResult } from '@/entities/map'
 
 const DEBOUNCE_MS = 300

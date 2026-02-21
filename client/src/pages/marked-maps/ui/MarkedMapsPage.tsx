@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useDebouncedValue } from '@/shared/lib/useDebouncedValue'
+import { useDebouncedValue } from '../../../shared/lib/useDebouncedValue'
 import {
   Box,
   Button,
