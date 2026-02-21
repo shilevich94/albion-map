@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { useDebouncedValue } from '../../../hooks/useDebouncedValue'
 import {
   Box,
   Button,
