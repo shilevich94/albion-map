@@ -116,6 +116,7 @@ lib-commonjs/
 lib-shim/
 dist/
 dist-storybook/
+server/public/
 *.tsbuildinfo
 
 # Heft temporary files

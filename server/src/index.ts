@@ -1,4 +1,7 @@
 import 'dotenv/config'
+import path from 'path'
+import { existsSync } from 'fs'
+import { fileURLToPath } from 'url'
 import express from 'express'
 import cors from 'cors'
 import { connectDb } from './config/db.js'
@@ -8,6 +11,8 @@ import marksRouter from './routes/marks.js'
 import albionMapsRouter from './routes/albion-maps.js'
 import gameMapsRouter from './routes/game-maps.js'
 import markedMapsRouter from './routes/marked-maps.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const app = express()
 app.use(cors())
@@ -22,6 +27,13 @@ app.use('/api/marked-maps', markedMapsRouter)
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' })
 })
+
+// Serve frontend (when built and present, e.g. in Docker)
+const publicDir = path.join(__dirname, '..', 'public')
+if (existsSync(publicDir)) {
+  app.use(express.static(publicDir))
+  app.get('*', (_req, res) => res.sendFile(path.join(publicDir, 'index.html')))
+}
 
 function start() {
   app.listen(PORT, () => {
