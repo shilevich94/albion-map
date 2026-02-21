@@ -1,28 +1,28 @@
-# Render Blueprint: albion-map
-# Backend (Node API) + Frontend (static site)
+# Render Blueprint: albion-map (Rush monorepo)
+# Uses @microsoft/rush via common/scripts/install-run-rush.js (no global install needed).
 # Set MONGODB_URI for the API and VITE_API_URL for the frontend in the Render Dashboard.
 
 services:
-  # Backend: Node/Express API (connects to MongoDB Atlas)
+  # Backend: Node/Express API (Rush build)
   - type: web
     runtime: node
     name: albion-map-api
-    rootDir: server
-    buildCommand: npm install && npm run build
-    startCommand: node dist/index.js
+    # Build from repo root using Rush
+    buildCommand: node common/scripts/install-run-rush.js install && node common/scripts/install-run-rush.js build --to albion-map-server
+    startCommand: node server/dist/index.js
     envVars:
       - key: MONGODB_URI
         sync: false  # Set in Render Dashboard (your Atlas connection string)
       - key: NODE_ENV
         value: production
 
-  # Frontend: Vite/React static site
+  # Frontend: Vite/React static site (Rush build)
   - type: web
     runtime: static
     name: albion-map
-    rootDir: client
-    buildCommand: npm install && npm run build
-    staticPublishPath: dist
+    # Build from repo root using Rush
+    buildCommand: node common/scripts/install-run-rush.js install && node common/scripts/install-run-rush.js build --to albion-map-client
+    staticPublishPath: client/dist
     envVars:
       - key: VITE_API_URL
-        sync: false  # Set in Render Dashboard to your API URL (e.g. https://albion-map-api.onrender.com)
+        sync: false  # Set to your API URL (e.g. https://albion-map-api.onrender.com)
