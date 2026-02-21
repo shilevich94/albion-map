@@ -12,8 +12,8 @@ WORKDIR /app
 
 COPY . .
 
-# Build both server and client via Rush
-RUN node common/scripts/install-run-rush.js install && \
+# Build both server and client via Rush (--purge so container store path is accepted)
+RUN node common/scripts/install-run-rush.js install --purge && \
     node common/scripts/install-run-rush.js build --to albion-map-server && \
     node common/scripts/install-run-rush.js build --to albion-map-client && \
     cp -r client/dist server/public
