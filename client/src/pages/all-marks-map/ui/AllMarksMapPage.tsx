@@ -29,6 +29,24 @@ interface MapWithMarks {
   savedCount: number
 }
 
+/** Distance between two marks in percentage space */
+function markDistance(a: MarkPosition, b: MarkPosition): number {
+  return Math.hypot(a.x - b.x, a.y - b.y)
+}
+
+/** Merge marks that intersect (are within thresholdPercent of each other); keep one per cluster */
+function mergeIntersectingMarks(
+  marks: MarkPosition[],
+  thresholdPercent = 2.5
+): MarkPosition[] {
+  const result: MarkPosition[] = []
+  for (const mark of marks) {
+    const intersects = result.some((existing) => markDistance(existing, mark) <= thresholdPercent)
+    if (!intersects) result.push({ ...mark })
+  }
+  return result
+}
+
 function groupByMap(list: MarkedMap[]): MapWithMarks[] {
   const byMap = new Map<string, MapWithMarks>()
   for (const doc of list) {
@@ -50,7 +68,7 @@ function groupByMap(list: MarkedMap[]): MapWithMarks[] {
 }
 
 export function AllMarksMapPage() {
-  const { data: list = [], isFetching } = useListMarkedMapsQuery('')
+  const { data: list = [], isFetching } = useListMarkedMapsQuery({ todayOnly: false })
   const [popupMap, setPopupMap] = useState<MapWithMarks | null>(null)
 
   const mapsWithMarks = useMemo(() => groupByMap(list), [list])
@@ -58,10 +76,10 @@ export function AllMarksMapPage() {
   const { data: markedMapsForPopup = [] } = useGetMarkedMapsForMapQuery(popupMap?.mapId ?? '', {
     skip: !popupMap,
   })
-  const allMarksInPopup: MarkPosition[] = useMemo(
-    () => markedMapsForPopup.flatMap((doc) => doc.marks),
-    [markedMapsForPopup]
-  )
+  const allMarksInPopup: MarkPosition[] = useMemo(() => {
+    const flat = markedMapsForPopup.flatMap((doc) => doc.marks)
+    return mergeIntersectingMarks(flat)
+  }, [markedMapsForPopup])
 
   const popupMapForViewer = popupMap
     ? {
@@ -126,6 +144,7 @@ export function AllMarksMapPage() {
               selectedMap={popupMapForViewer}
               marks={allMarksInPopup}
               readOnly
+              showMarkLabels={false}
             />
           )}
         </DialogContent>

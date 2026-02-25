@@ -3,12 +3,35 @@ import { MarkedMapModel } from '../models/MarkedMap.js'
 
 const router: Router = express.Router()
 
-/** GET /api/marked-maps?q=... - list marked maps, filter by mapName, sort by date desc */
+/** Whether a date (Date or ISO string) falls on today UTC */
+function isTodayUTC(date: Date | string): boolean {
+  const d = typeof date === 'string' ? new Date(date) : date
+  const now = new Date()
+  return (
+    d.getUTCFullYear() === now.getUTCFullYear() &&
+    d.getUTCMonth() === now.getUTCMonth() &&
+    d.getUTCDate() === now.getUTCDate()
+  )
+}
+
+/** GET /api/marked-maps?q=...&todayOnly=true - list marked maps, filter by mapName, optionally only today (UTC), sort by date desc.
+ *  Default: todayOnly=true (only maps created today UTC). Send todayOnly=false to get all. */
 router.get('/', async (req, res) => {
   try {
     const q = typeof req.query.q === 'string' ? req.query.q.trim() : ''
+    const todayOnly = req.query.todayOnly !== 'false'
+
     const filter = q ? { mapName: new RegExp(q, 'i') } : {}
-    const list = await MarkedMapModel.find(filter).sort({ updatedAt: -1 }).limit(200).lean()
+    let list = await MarkedMapModel.find(filter)
+      .sort({ updatedAt: -1 })
+      .limit(todayOnly ? 500 : 200)
+      .lean()
+
+    if (todayOnly) {
+      list = list.filter((doc) => doc.createdAt && isTodayUTC(doc.createdAt))
+      list = list.slice(0, 200)
+    }
+
     res.json(list)
   } catch (err) {
     console.error('Marked maps list error:', err)
@@ -36,7 +59,18 @@ router.post('/', async (req, res) => {
       return
     }
     const marksArray = Array.isArray(marks)
-      ? marks.filter((m: unknown): m is { x: unknown; y: unknown } => typeof m === 'object' && m !== null && 'x' in m && 'y' in m).map((m) => ({ x: Number(m.x), y: Number(m.y) }))
+      ? marks
+          .filter(
+            (m: unknown): m is { x: unknown; y: unknown; name?: unknown } =>
+              typeof m === 'object' && m !== null && 'x' in m && 'y' in m
+          )
+          .map((m) => ({
+            x: Number(m.x),
+            y: Number(m.y),
+            ...(typeof (m as { name?: unknown }).name === 'string'
+              ? { name: (m as { name: string }).name }
+              : {}),
+          }))
       : []
     const doc = await MarkedMapModel.create({
       mapId,
@@ -56,7 +90,18 @@ router.put('/:id', async (req, res) => {
   try {
     const { mapId, mapName, imageUrl, marks } = req.body
     const marksArray = Array.isArray(marks)
-      ? marks.filter((m: unknown): m is { x: unknown; y: unknown } => typeof m === 'object' && m !== null && 'x' in m && 'y' in m).map((m) => ({ x: Number(m.x), y: Number(m.y) }))
+      ? marks
+          .filter(
+            (m: unknown): m is { x: unknown; y: unknown; name?: unknown } =>
+              typeof m === 'object' && m !== null && 'x' in m && 'y' in m
+          )
+          .map((m) => ({
+            x: Number(m.x),
+            y: Number(m.y),
+            ...(typeof (m as { name?: unknown }).name === 'string'
+              ? { name: (m as { name: string }).name }
+              : {}),
+          }))
       : undefined
     const update: Record<string, unknown> = {}
     if (marksArray !== undefined) update.marks = marksArray

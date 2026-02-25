@@ -15,9 +15,20 @@ interface MapViewerProps {
   onMarksChange?: (marks: MarkPosition[]) => void
   /** When true, marks are display-only (no add/remove) */
   readOnly?: boolean
+  /** When true and mark has name, show label under the dot */
+  showMarkLabels?: boolean
+  /** Optional click handler for a mark; when provided, clicking a mark calls this instead of removing it */
+  onMarkClick?: (mark: MarkPosition, index: number, event: React.MouseEvent) => void
 }
 
-export function MapViewer({ selectedMap, marks, onMarksChange, readOnly = false }: MapViewerProps) {
+export function MapViewer({
+  selectedMap,
+  marks,
+  onMarksChange,
+  readOnly = false,
+  showMarkLabels = true,
+  onMarkClick,
+}: MapViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [imageSize, setImageSize] = useState<{ w: number; h: number } | null>(null)
 
@@ -122,8 +133,12 @@ export function MapViewer({ selectedMap, marks, onMarksChange, readOnly = false 
               <Box
                 key={`${m.x}-${m.y}-${i}`}
                 onClick={(e) => {
-                  if (readOnly || !onMarksChange) return
                   e.stopPropagation()
+                  if (onMarkClick) {
+                    onMarkClick(m, i, e)
+                    return
+                  }
+                  if (readOnly || !onMarksChange) return
                   const rect = containerRef.current?.getBoundingClientRect()
                   if (!rect) return
                   const mx = (m.x / 100) * rect.width
@@ -143,10 +158,33 @@ export function MapViewer({ selectedMap, marks, onMarksChange, readOnly = false 
                   backgroundColor: 'red',
                   border: '2px solid #fff',
                   boxSizing: 'border-box',
-                  cursor: readOnly ? 'default' : 'pointer',
+                  cursor: readOnly && !onMarkClick ? 'default' : 'pointer',
                   pointerEvents: 'auto',
                 }}
-              />
+              >
+                {showMarkLabels && m.name && (
+                  <Typography
+                    component="span"
+                    sx={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      mt: 0.25,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      color: '#fff',
+                      whiteSpace: 'nowrap',
+                      maxWidth: 120,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      textShadow: '0 0 2px #000, 0 0 4px #000',
+                    }}
+                  >
+                    {m.name}
+                  </Typography>
+                )}
+              </Box>
             ))}
           </>
         )}

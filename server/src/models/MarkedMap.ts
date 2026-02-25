@@ -3,6 +3,7 @@ import mongoose, { Schema, type Document, type Model } from 'mongoose'
 export interface IMarkPosition {
   x: number
   y: number
+  name?: string
 }
 
 export interface IMarkedMap extends Document {
@@ -15,7 +16,11 @@ export interface IMarkedMap extends Document {
 }
 
 const MarkPositionSchema = new Schema<IMarkPosition>(
-  { x: { type: Number, required: true }, y: { type: Number, required: true } },
+  {
+    x: { type: Number, required: true },
+    y: { type: Number, required: true },
+    name: { type: String, required: false },
+  },
   { _id: false }
 )
 

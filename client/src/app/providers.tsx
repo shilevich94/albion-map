@@ -3,7 +3,11 @@ import { ThemeProvider, createTheme } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import { store } from './store'
 
-const theme = createTheme()
+const theme = createTheme({
+  palette: {
+    mode: 'dark',
+  },
+})
 
 export function AppProviders({
   children,
